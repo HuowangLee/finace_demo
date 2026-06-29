@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>金融行业 AI 应用场景</title>
+  <style>
+    :root {
+      --panel: #ffffff;
+      --ink: #1f2a33;
+      --muted: #65717a;
+      --line: #e4e8eb;
+      --primary: #1a365d;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: auto;
+      color: var(--ink);
+      background: #f0f2f5;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+    }
+    .index-wrap { min-height: 100vh; padding: 28px; }
+    .index-hero { background: linear-gradient(135deg,#1a365d,#2c5282); color:#fff; border-radius: 16px; padding: 30px 34px; margin-bottom: 20px; }
+    .index-hero h1 { margin:0 0 8px; font-size: 28px; }
+    .index-hero p { margin:0; max-width: 820px; line-height:1.8; opacity:.9; }
+    .scene-grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:16px; }
+    .scene-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; }
+    .scene-card h2 { margin:0 0 6px; font-size:18px; color:var(--primary); }
+    .scene-card p { margin:0 0 14px; font-size:13px; color:var(--muted); line-height:1.7; }
+    .case-grid { display:grid; gap:10px; }
+    .case-link { display:block; padding:12px 14px; border:1px solid var(--line); border-radius:9px; text-decoration:none; color:var(--ink); background:#fafbfc; }
+    .case-link:hover { border-color:rgba(49,130,206,.45); background:#ebf4ff; }
+    .case-link .name { font-weight:800; font-size:13px; }
+    .case-link .desc { margin-top:4px; font-size:12px; color:var(--muted); line-height:1.55; }
+    @media (max-width: 900px) { .scene-grid { grid-template-columns:1fr; } .index-wrap { padding:16px; } }
+  </style>
+</head>
+<body>
+  <div class="index-wrap">
+    <section class="index-hero">
+      <h1>金融行业 AI 应用场景原型</h1>
+      <p>围绕投研分析、投资决策、风险审查、客户服务与运营处理四类场景，进入对应的系统原型工作台。每个页面聚焦业务模块、数据看板、规则命中、证据链与审批留痕。</p>
+    </section>
+    <div class="scene-grid" id="sceneGrid"></div>
+  </div>
+  <script>
+    const scenes = [
+      { title:'投研分析', desc:'资料检索、主体画像、产业项目尽调与可溯源研究沉淀。', cases:[['投研知识底座','01_投研知识底座.html','投研资料检索、问答溯源、观点沉淀'],['标的画像生成','02_标的画像生成.html','上市公司/主体画像、财务事件与风险事项'],['产业项目尽调','03_产业项目尽调.html','材料核验、风险清单、投决底稿']]},
+      { title:'投资决策', desc:'交易指令、组合归因和国企投决会前支持。', cases:[['交易指令辅助','04_交易指令辅助.html','意图解析、交易前校验、执行留痕'],['组合风险归因','05_组合风险归因.html','收益归因、风险拆解、压力测试'],['国企投资投决助手','国企投资投决助手.html','投决材料、历史案例、追问清单']]},
+      { title:'风险审查', desc:'交易对手、投资合规和资金流异常研判。', cases:[['交易对手风险监测','06_交易对手风险监测.html','事件流、敞口、处置建议'],['投资合规校验','07_投资合规校验.html','规则库、交易前校验、合规留痕'],['账户资金流异常研判','08_账户资金流异常研判.html','AML预警、资金链路、核查建议']]},
+      { title:'客户服务与运营处理', desc:'文档审核、机构知识问答和数字人服务。', cases:[['金融文档审核','09_金融文档审核.html','字段抽取、一致性校验、审核意见'],['机构知识助手','10_机构知识助手.html','制度问答、流程指引、权限审计'],['银行数字人服务助手','银行数字人服务助手.html','客户画像、防诈识别、服务记录']]}
+    ];
+    document.getElementById('sceneGrid').innerHTML = scenes.map(scene => `<section class="scene-card"><h2>${scene.title}</h2><p>${scene.desc}</p><div class="case-grid">${scene.cases.map(c => `<a class="case-link" href="${c[1]}"><div class="name">${c[0]}</div><div class="desc">${c[2]}</div></a>`).join('')}</div></section>`).join('');
+  </script>
+</body>
+</html>

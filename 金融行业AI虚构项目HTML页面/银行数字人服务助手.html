@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>银行数字人服务助手</title>
+  <style>
+    :root {
+      --ink: #132238;
+      --muted: #64748b;
+      --line: #dbe5f0;
+      --blue: #1769aa;
+      --blue-2: #2d8fd5;
+      --cyan: #2cb9c8;
+      --green: #13835f;
+      --amber: #b86b18;
+      --red: #c23a3a;
+      --soft-blue: #e9f4ff;
+      --soft-green: #eaf8f2;
+      --soft-amber: #fff6e8;
+      --soft-red: #fff0f0;
+      --font: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at 12% 10%, rgba(45, 143, 213, .28), transparent 30%),
+        radial-gradient(circle at 88% 18%, rgba(44, 185, 200, .20), transparent 28%),
+        linear-gradient(160deg, #f7fbff 0%, #e6f0f8 48%, #f8fbff 100%);
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .phone {
+      position: relative;
+      width: min(430px, 100%);
+      height: min(900px, calc(100vh - 40px));
+      min-height: 720px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(23, 105, 170, .18);
+      border-radius: 34px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 28px 80px rgba(19, 34, 56, .22);
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      z-index: 5;
+      width: 112px;
+      height: 25px;
+      border-radius: 0 0 16px 16px;
+      transform: translateX(-50%);
+      background: rgba(14, 36, 58, .92);
+    }
+
+    .hero {
+      position: relative;
+      flex: 0 0 auto;
+      padding: 12px 16px 10px;
+      color: #fff;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(23, 105, 170, .96), rgba(45, 143, 213, .95)),
+        radial-gradient(circle at 86% 20%, rgba(255, 255, 255, .32), transparent 28%);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -34px;
+      bottom: -56px;
+      width: 170px;
+      height: 170px;
+      border: 24px solid rgba(255, 255, 255, .13);
+      border-radius: 50%;
+    }
+    .statusbar {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-top: 4px;
+      font-size: 12px;
+      opacity: .94;
+    }
+    .assistant-head {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+    .avatar {
+      position: relative;
+      display: grid;
+      width: 46px;
+      height: 46px;
+      place-items: center;
+      border-radius: 17px;
+      color: var(--blue);
+      font-size: 22px;
+      font-weight: 900;
+      background: rgba(255, 255, 255, .96);
+      box-shadow: 0 12px 30px rgba(0, 48, 92, .22);
+    }
+    .avatar::after {
+      content: "";
+      position: absolute;
+      right: -2px;
+      bottom: 4px;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: #2bd482;
+    }
+    .assistant-head h1 {
+      margin: 0 0 2px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    .assistant-head p {
+      margin: 0;
+      font-size: 12px;
+      opacity: .92;
+    }
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 14px 12px;
+      background:
+        linear-gradient(180deg, #f7fbff 0%, #f4f7fb 100%);
+    }
+    .alert-card {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      margin-bottom: 13px;
+      padding: 12px;
+      border: 1px solid #ffd5a3;
+      border-radius: 18px;
+      background: #fff8ed;
+      color: #754911;
+      font-size: 12px;
+      line-height: 1.6;
+      box-shadow: 0 8px 22px rgba(184, 107, 24, .08);
+    }
+    .alert-icon {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 900;
+      background: var(--amber);
+    }
+
+    .strip-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 14px 2px 9px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .strip-title span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .service-strip,
+    .product-strip {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 3px;
+      scroll-snap-type: x proximity;
+    }
+    .service-strip::-webkit-scrollbar,
+    .product-strip::-webkit-scrollbar,
+    .content::-webkit-scrollbar { width: 0; height: 0; }
+    .service {
+      flex: 0 0 98px;
+      min-height: 82px;
+      border: 1px solid #dfebf6;
+      border-radius: 18px;
+      padding: 10px;
+      text-align: left;
+      color: #26364d;
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, .05);
+      scroll-snap-align: start;
+    }
+    .service strong {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      margin-bottom: 7px;
+      border-radius: 11px;
+      color: #fff;
+      font-size: 17px;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+    }
+    .service span {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .service-block {
+      margin-bottom: 12px;
+    }
+
+    .case-grid {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 118px;
+      z-index: 8;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid rgba(219, 231, 243, .9);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .96);
+      box-shadow: 0 18px 42px rgba(15, 23, 42, .16);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity .16s ease, transform .16s ease;
+      backdrop-filter: blur(12px);
+    }
+    .case-grid.open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .case-question {
+      min-height: 58px;
+      border: 1px solid #dbe7f3;
+      border-radius: 16px;
+      padding: 10px;
+      color: #26364d;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.35;
+      background: #fff;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+    }
+    .case-question strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--red);
+      font-size: 13px;
+    }
+
+    .case-title {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      color: #26364d;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .case-title span {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .message {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+      align-items: flex-start;
+    }
+    .message.user { justify-content: flex-end; }
+    .mini-avatar {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+    }
+    .bubble {
+      max-width: 82%;
+      padding: 11px 13px;
+      border-radius: 18px;
+      color: #26364d;
+      font-size: 14px;
+      line-height: 1.65;
+      background: #fff;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
+    }
+    .message.bot .bubble { border-bottom-left-radius: 7px; }
+    .message.user .bubble {
+      color: #fff;
+      border-bottom-right-radius: 7px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+    }
+    .source {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #edf1f5;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 8px;
+    }
+    .chip {
+      border: 1px solid #dbe7f3;
+      border-radius: 999px;
+      padding: 6px 9px;
+      color: #34506d;
+      font-size: 12px;
+      background: #f8fbff;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .tag-green { color: var(--green); background: var(--soft-green); }
+    .tag-amber { color: var(--amber); background: var(--soft-amber); }
+    .tag-red { color: var(--red); background: var(--soft-red); }
+    .tag-blue { color: var(--blue); background: var(--soft-blue); }
+
+    .product-card {
+      flex: 0 0 250px;
+      padding: 13px;
+      border: 1px solid #dce8f4;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+      scroll-snap-align: start;
+    }
+    .product-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .product-card strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+    .product-card p {
+      margin: 0;
+      color: #526173;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .risk-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin-top: 10px;
+    }
+    .metric {
+      padding: 8px;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+    .metric b {
+      font-size: 12px;
+    }
+
+    .composer {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 10px 14px 16px;
+      border-top: 1px solid #edf2f7;
+      background: rgba(255, 255, 255, .96);
+      backdrop-filter: blur(12px);
+    }
+    .composer input {
+      min-width: 0;
+      border: 1px solid #d7e0eb;
+      border-radius: 999px;
+      padding: 12px 14px;
+      outline: none;
+      background: #f7f9fc;
+    }
+    .composer input:focus {
+      border-color: #8ab4f8;
+      box-shadow: 0 0 0 3px rgba(36, 81, 138, .12);
+    }
+    .send {
+      border: 0;
+      border-radius: 999px;
+      padding: 0 17px;
+      color: #fff;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+    }
+
+    .bottom-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid #edf2f7;
+      background: #fff;
+    }
+    .nav-item {
+      border: 0;
+      padding: 8px 4px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      background: #fff;
+    }
+    .nav-item strong {
+      display: block;
+      margin-bottom: 3px;
+      color: #334155;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      z-index: 20;
+      width: min(320px, calc(100vw - 40px));
+      padding: 12px 14px;
+      border-radius: 14px;
+      color: #fff;
+      text-align: center;
+      font-size: 13px;
+      opacity: 0;
+      transform: translate(-50%, 12px);
+      pointer-events: none;
+      background: rgba(23, 32, 51, .94);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 520px) {
+      .shell { padding: 0; }
+      .phone {
+        width: 100%;
+        height: 100vh;
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .phone::before { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="phone" aria-label="银行数字人服务助手">
+      <header class="hero">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span>手机银行 · 安全连接</span>
+        </div>
+        <div class="assistant-head">
+          <div class="avatar">融</div>
+          <div>
+            <h1>小融数字人</h1>
+            <p>防诈问答 · 理财说明 · 人工协助</p>
+          </div>
+        </div>
+      </header>
+
+      <section class="content" id="chat">
+        <div class="alert-card">
+          <div class="alert-icon">!</div>
+          <div>银行和公安机关不会要求您把资金转入“安全账户”。遇到转账要求，请先通过官方电话或网点核实。</div>
+        </div>
+
+        <div class="service-block">
+          <div class="strip-title">常用服务 <span>左右滑动</span></div>
+          <div class="service-strip">
+            <button class="service" data-action="fraud"><strong>盾</strong><span>防诈核验</span></button>
+            <button class="service" data-action="product"><strong>理</strong><span>理财说明</span></button>
+            <button class="service" data-action="pension"><strong>养</strong><span>养老金融</span></button>
+            <button class="service" data-action="deposit"><strong>存</strong><span>存款利率</span></button>
+            <button class="service" data-action="branch"><strong>点</strong><span>附近网点</span></button>
+            <button class="service" data-action="human"><strong>人</strong><span>人工坐席</span></button>
+          </div>
+        </div>
+
+        <div class="message bot">
+          <div class="mini-avatar">融</div>
+          <div class="bubble">
+            王女士，您好。我是小融。您可以直接问我转账安全、理财风险、存款利率、养老金账户、业务办理流程。
+            <div class="chips">
+              <button class="chip" data-prompt="有人让我转到安全账户怎么办？">安全账户怎么办</button>
+              <button class="chip" data-prompt="稳健型客户可以了解哪些产品？">稳健产品</button>
+              <button class="chip" data-prompt="如何联系人工客服？">联系人工</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="message user">
+          <div class="bubble">有人说我的账户有风险，让我把存款转到安全账户。</div>
+        </div>
+
+        <div class="message bot">
+          <div class="mini-avatar">融</div>
+          <div class="bubble">
+            请先不要转账。“安全账户”是常见诈骗话术。银行和公安机关不会让您把钱转到指定账户配合调查。
+            <div class="source">建议：立即停止沟通，拨打银行官方客服电话或到附近网点核实。</div>
+          </div>
+        </div>
+
+        <div class="message user">
+          <div class="bubble">如果我想买低风险理财，应该看什么？</div>
+        </div>
+
+        <div class="message bot">
+          <div class="mini-avatar">融</div>
+          <div class="bubble">
+            可以先看三项：风险等级、产品期限、是否可随时赎回。稳健型客户通常先了解 R1-R2 产品，购买前仍需完成风险测评。
+            <div class="source">提示：理财产品不等同存款，不承诺保本保收益。</div>
+          </div>
+        </div>
+
+        <div class="message user">
+          <div class="bubble">我不会操作，可以让人工帮我吗？</div>
+        </div>
+
+        <div class="message bot">
+          <div class="mini-avatar">融</div>
+          <div class="bubble">
+            可以。我可以为您接入人工坐席，也可以预约附近网点。等待期间请不要向任何人提供密码、验证码或屏幕共享。
+          </div>
+        </div>
+      </section>
+
+      <div class="case-grid" id="caseGrid">
+        <div class="case-title">反诈案例快问 <span>点一下直接问</span></div>
+        <button class="case-question" data-prompt="有人自称公安，说我账户涉案，让我转到安全账户怎么办？"><strong>安全账户</strong>公安来电要求转账</button>
+        <button class="case-question" data-prompt="陌生人让我共享屏幕指导操作手机银行，安全吗？"><strong>共享屏幕</strong>远程指导转账</button>
+        <button class="case-question" data-prompt="收到短信说银行卡异常，要点链接填写验证码，可以吗？"><strong>短信链接</strong>填写卡号验证码</button>
+        <button class="case-question" data-prompt="有人说刷流水能提高贷款额度，让我先转几笔钱，靠谱吗？"><strong>刷流水</strong>提高贷款额度</button>
+      </div>
+
+      <form class="composer" id="composer">
+        <input id="chatInput" type="text" placeholder="输入您的问题，例如：这个理财风险高吗？">
+        <button class="send" type="submit">发送</button>
+      </form>
+
+      <nav class="bottom-nav" aria-label="底部导航">
+        <button class="nav-item" data-action="fraud"><strong>盾</strong>安全</button>
+        <button class="nav-item" data-action="product"><strong>理</strong>理财</button>
+        <button class="nav-item" data-action="branch"><strong>点</strong>网点</button>
+        <button class="nav-item" data-action="human"><strong>人</strong>人工</button>
+      </nav>
+    </section>
+  </main>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("chatInput");
+    const toastNode = document.getElementById("toast");
+    const caseGrid = document.getElementById("caseGrid");
+
+    const products = [
+      { name: "现金管理类理财", tag: "流动性", risk: "R1-R2", term: "每日开放", start: "1元起", note: "适合关注流动性和低波动的客户。" },
+      { name: "稳健固收理财", tag: "稳健配置", risk: "R2", term: "90-180天", start: "1万元起", note: "主要投资固定收益类资产，净值会有波动。" },
+      { name: "大额存单", tag: "存款产品", risk: "存款", term: "1-3年", start: "20万元起", note: "属于一般性存款，具体利率以购买页面为准。" },
+      { name: "养老理财专区", tag: "长期规划", risk: "R2-R3", term: "长期", start: "按产品", note: "适合关注养老资金规划的客户，需阅读期限安排。" },
+      { name: "结构性存款", tag: "收益浮动", risk: "存款+衍生", term: "3-12个月", start: "1万元起", note: "收益与挂钩指标有关，请关注最差情形说明。" }
+    ];
+
+    const replies = {
+      fraud: "请不要继续与陌生来电或聊天账号沟通。我可以为您打开官方核验入口，也建议联系人工坐席协助确认。",
+      product: productReply(),
+      pension: "养老金融适合做长期资金安排。您可以了解养老金账户、养老储蓄、养老理财等类别，购买或开通前请确认期限、风险等级和资金用途。",
+      deposit: "存款利率会随期限、金额和地区调整，请以手机银行当前展示为准。大额存单通常有起存金额和转让规则。",
+      branch: "已为您准备附近网点查询入口。办理大额转账、账户异常核验时，建议携带身份证和银行卡到网点确认。",
+      human: "已为您接入人工坐席。等待期间请不要转账，也不要向对方提供验证码、密码或身份证照片。",
+      risk: "购买理财产品前建议先完成风险承受能力测评。测评结果会影响可购买产品范围。"
+    };
+
+    function productReply() {
+      return `
+        您可以先了解以下几类产品。购买前请确认风险等级、期限、赎回规则，并阅读产品说明书。
+        ${products.map(product => `
+          <div class="product-card" style="margin-top:8px;box-shadow:none;">
+            <div class="product-top">
+              <div><strong>${product.name}</strong><p>${product.note}</p></div>
+              <span class="tag ${product.risk === "存款" || product.risk === "R1-R2" ? "tag-green" : product.risk === "R2" ? "tag-blue" : "tag-amber"}">${product.risk}</span>
+            </div>
+            <div class="risk-row">
+              <div class="metric"><span>期限</span><b>${product.term}</b></div>
+              <div class="metric"><span>起点</span><b>${product.start}</b></div>
+              <div class="metric"><span>类型</span><b>${product.tag}</b></div>
+            </div>
+          </div>
+        `).join("")}
+      `;
+    }
+
+    function toast(message) {
+      toastNode.textContent = message;
+      toastNode.classList.add("show");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => toastNode.classList.remove("show"), 2200);
+    }
+
+    function addMessage(text, type = "bot", html = "") {
+      const row = document.createElement("div");
+      row.className = `message ${type}`;
+      row.innerHTML = type === "bot"
+        ? `<div class="mini-avatar">融</div><div class="bubble">${html || text}</div>`
+        : `<div class="bubble">${text}</div>`;
+      chat.appendChild(row);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function botReply(html) {
+      addMessage("", "bot", html);
+    }
+
+    function handleAction(action) {
+      botReply(replies[action] || "我已为您打开对应服务。");
+      toast("已打开" + ({ fraud: "防诈核验", product: "理财说明", pension: "养老金融", deposit: "存款利率", branch: "附近网点", human: "人工坐席", risk: "风险测评" }[action] || "服务"));
+    }
+
+    document.addEventListener("click", event => {
+      const actionButton = event.target.closest("[data-action]");
+      if (actionButton) {
+        handleAction(actionButton.dataset.action);
+        return;
+      }
+      const promptButton = event.target.closest("[data-prompt]");
+      if (promptButton) {
+        input.value = promptButton.dataset.prompt;
+        caseGrid.classList.remove("open");
+        document.getElementById("composer").requestSubmit();
+      }
+    });
+
+    document.getElementById("composer").addEventListener("submit", event => {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      caseGrid.classList.remove("open");
+      addMessage(text, "user");
+      input.value = "";
+      if (text.includes("共享屏幕")) {
+        botReply("不要共享屏幕。对方一旦看到您的手机银行、短信验证码或支付密码输入过程，就可能转走资金。请立即挂断或退出会议软件，并通过官方渠道核实。");
+      } else if (text.includes("短信") || text.includes("链接")) {
+        botReply("不要点击陌生短信链接，也不要填写银行卡号、密码、验证码。银行不会通过短信链接要求您提交完整账户敏感信息。建议删除短信，并从手机银行或官网进入服务。");
+      } else if (text.includes("刷流水") || text.includes("贷款额度")) {
+        botReply("“刷流水提高贷款额度”是高风险话术。正规贷款审批不会要求客户先转账刷流水。请不要转钱，也不要提供银行卡、验证码或身份证照片。");
+      } else if (text.includes("安全账户") || text.includes("转账") || text.includes("诈骗") || text.includes("验证码")) {
+        botReply("请先不要转账，也不要提供验证码、密码或屏幕共享。凡是要求您转入“安全账户”的说法都存在高风险，请通过官方渠道核实。");
+      } else if (text.includes("理财") || text.includes("风险") || text.includes("产品")) {
+        botReply(replies.product);
+      } else if (text.includes("人工") || text.includes("客服")) {
+        botReply(replies.human);
+      } else if (text.includes("网点")) {
+        botReply(replies.branch);
+      } else {
+        botReply("我已收到。您可以继续描述问题，也可以点击上方快捷入口办理防诈核验、理财说明、网点查询或转人工服务。");
+      }
+    });
+
+    input.addEventListener("focus", () => caseGrid.classList.add("open"));
+    input.addEventListener("click", () => caseGrid.classList.add("open"));
+    document.addEventListener("click", event => {
+      if (!event.target.closest("#caseGrid") && !event.target.closest("#composer")) {
+        caseGrid.classList.remove("open");
+      }
+    });
+  </script>
+</body>
+</html>

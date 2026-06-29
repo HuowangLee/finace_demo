@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>金融文档审核工作台</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --panel: #fffdf8;
+      --soft: #f4f1ea;
+      --line: #ded8cb;
+      --line-soft: #eee9de;
+      --text: #28241f;
+      --muted: #716a61;
+      --primary: #795c34;
+      --primary-soft: #efe6d8;
+      --green: #157f5f;
+      --green-soft: #e9f7f1;
+      --amber: #b7791f;
+      --amber-soft: #fff7e6;
+      --red: #c2413a;
+      --red-soft: #fff1f0;
+      --shadow: 0 10px 24px rgba(88, 68, 45, .09);
+      --radius: 6px;
+      --font: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--text); font-family: var(--font); background: linear-gradient(90deg, #ebe5d9 0, var(--bg) 30%, #fbfaf5 100%); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+    .sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: #fbf8ef; }
+    .brand { display: flex; gap: 10px; align-items: center; padding: 17px 16px; border-bottom: 1px solid var(--line-soft); background: #efe7d9; }
+    .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 4px; color: #fff; font-size: 12px; font-weight: 800; background: var(--primary); }
+    .brand strong { display: block; font-size: 15px; }
+    .brand span, .nav-title, .side-note { color: var(--muted); font-size: 12px; }
+    .nav { padding: 14px 10px; }
+    .nav-title { margin: 0 8px 8px; color: #8a94a6; }
+    .nav-item { display: flex; align-items: center; gap: 9px; width: 100%; margin-bottom: 4px; padding: 10px 9px; border: 0; border-left: 3px solid transparent; border-radius: 3px; color: #5d554d; text-align: left; background: transparent; }
+    .nav-item:hover, .nav-item.active { color: var(--primary); background: var(--primary-soft); }
+    .nav-icon { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 3px; font-size: 11px; font-weight: 800; background: #eee6d8; }
+    .nav-item:hover .nav-icon, .nav-item.active .nav-icon { color: #fff; background: var(--primary); }
+    .side-note { margin-top: auto; padding: 14px 16px; border-top: 1px solid var(--line-soft); line-height: 1.7; }
+    .main { min-width: 0; padding: 18px 22px 28px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .topbar h1 { margin: 0 0 4px; font-size: 22px; font-weight: 800; }
+    .topbar p { margin: 0; color: var(--muted); font-size: 13px; }
+    .user-box { display: flex; align-items: center; gap: 10px; min-width: 270px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+    .avatar { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 800; background: #334155; }
+    .user-box strong { display: block; font-size: 13px; }
+    .user-box span { color: var(--muted); font-size: 12px; }
+    .filter-card, .panel, .stat { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+    .filter-card { padding: 14px; box-shadow: var(--shadow); }
+    .filter-row { display: grid; grid-template-columns: 150px minmax(220px, 1fr) 150px 128px; gap: 10px; align-items: center; }
+    .input, .select, .textarea { width: 100%; border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; color: var(--text); background: #fff; }
+    .textarea { min-height: 108px; resize: vertical; line-height: 1.6; }
+    .input:focus, .select:focus, .textarea:focus { outline: none; border-color: #8ab4f8; box-shadow: 0 0 0 3px rgba(36, 81, 138, .12); }
+    .btn { border: 1px solid transparent; border-radius: 9px; padding: 9px 13px; color: var(--text); font-weight: 700; background: #f1f5f9; }
+    .btn-primary { color: #fff; background: var(--primary); }
+    .btn-ghost { border-color: var(--line); color: #344054; background: #fff; }
+    .quick-row, .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; color: #475467; font-size: 12px; background: #fff; }
+    .chip:hover, .chip.active { border-color: #b9d2fb; color: var(--primary); background: var(--primary-soft); }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 14px 0; }
+    .stat { padding: 13px 14px; }
+    .stat .label { color: var(--muted); font-size: 12px; }
+    .stat .value { margin-top: 4px; font-size: 24px; font-weight: 800; }
+    .stat .note { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; align-items: start; }
+    .panel { overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 12px 14px; border-bottom: 1px solid var(--line-soft); }
+    .panel-head h2, .panel-head h3 { margin: 0; font-size: 15px; font-weight: 800; }
+    .panel-head span { color: var(--muted); font-size: 12px; }
+    .panel-body { padding: 14px; }
+    .tabs { display: flex; gap: 4px; padding: 0 12px; border-bottom: 1px solid var(--line-soft); background: #fff; }
+    .tab { margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; padding: 12px 11px 10px; color: var(--muted); font-weight: 700; background: transparent; }
+    .tab:hover, .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 11px 10px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-size: 12px; font-weight: 800; background: var(--soft); }
+    tr.clickable { cursor: pointer; }
+    tr.clickable:hover td, tr.selected td { background: #f0f6ff; }
+    .tag { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 8px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .tag-success { color: var(--green); background: var(--green-soft); }
+    .tag-warn { color: var(--amber); background: var(--amber-soft); }
+    .tag-danger { color: var(--red); background: var(--red-soft); }
+    .tag-info { color: var(--primary); background: #eaf3ff; }
+    .tag-muted { color: var(--muted); background: #eef2f7; }
+    .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+    .field { padding: 10px; border: 1px solid var(--line-soft); border-radius: 9px; background: var(--soft); }
+    .field span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 12px; }
+    .field strong { font-size: 13px; line-height: 1.45; }
+    .list, .side-stack { display: grid; gap: 10px; }
+    .side-stack { gap: 14px; }
+    .card-item { padding: 11px; border: 1px solid var(--line-soft); border-radius: 9px; background: #fff; }
+    .card-title { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; margin-bottom: 6px; font-size: 13px; font-weight: 800; }
+    .card-item p { margin: 0; color: #475467; font-size: 12px; line-height: 1.6; }
+    .step { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: start; padding: 9px; border: 1px solid var(--line-soft); border-radius: 9px; background: var(--soft); }
+    .dot { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; color: #fff; font-size: 11px; font-weight: 800; background: #98a2b3; }
+    .step.done .dot { background: var(--green); }
+    .step.warn .dot { background: var(--amber); }
+    .step.danger .dot { background: var(--red); }
+    .step strong { display: block; font-size: 13px; }
+    .step span, .todo span { color: var(--muted); font-size: 12px; }
+    .todo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line-soft); }
+    .todo:last-child { border-bottom: 0; }
+    .todo strong { display: block; margin-bottom: 4px; font-size: 13px; }
+    .mini-btn { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; color: var(--primary); font-size: 12px; font-weight: 700; background: #fff; }
+    .notice { padding: 12px; border: 1px solid #bfd7ff; border-radius: 9px; color: #24456f; font-size: 13px; line-height: 1.7; background: #f3f8ff; }
+    .empty { padding: 26px; color: var(--muted); text-align: center; font-size: 13px; }
+    .audit-line { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 12px; }
+    .audit-line:last-child { border-bottom: 0; }
+    .audit-line time { color: var(--muted); }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 20; min-width: 220px; padding: 12px 14px; border-radius: 9px; color: #fff; font-size: 13px; opacity: 0; transform: translateY(12px); pointer-events: none; background: rgba(23, 32, 51, .94); transition: opacity .18s ease, transform .18s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1200px) { .workspace { grid-template-columns: 1fr; } .stats, .detail-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 820px) { .app, .filter-row, .stats, .detail-grid { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; } .nav { display: flex; flex-wrap: wrap; gap: 6px; } .nav-title, .side-note { display: none; } .nav-item { width: auto; } .topbar { display: grid; grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">DR</div><div><strong>金融文档审核</strong><span>投行业务部审核台</span></div></div>
+      <nav class="nav">
+        <p class="nav-title">工作模块</p>
+        <button class="nav-item active" data-view="packages"><span class="nav-icon">包</span>材料包列表</button>
+        <button class="nav-item" data-view="extract"><span class="nav-icon">取</span>字段抽取</button>
+        <button class="nav-item" data-view="compare"><span class="nav-icon">核</span>一致性校验</button>
+        <button class="nav-item" data-view="missing"><span class="nav-icon">缺</span>缺失检查</button>
+        <button class="nav-item" data-view="clauses"><span class="nav-icon">条</span>条款识别</button>
+        <button class="nav-item" data-view="review"><span class="nav-icon">审</span>审核意见</button>
+        <button class="nav-item" data-view="audit"><span class="nav-icon">痕</span>审核留痕</button>
+      </nav>
+      <div class="side-note">
+        <div>OCR 队列：运行中</div>
+        <div>审批系统：10:48 已同步</div>
+        <div>用印材料：T 日实时校验</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><h1 id="pageTitle">材料包列表</h1><p id="pageDesc">处理合同、授信材料、担保协议和审批材料的字段核对与问题确认。</p></div>
+        <div class="user-box"><div class="avatar">审</div><div><strong>文档审核岗</strong><span>大型银行 · 投资银行部</span></div></div>
+      </header>
+
+      <section class="filter-card">
+        <div class="filter-row">
+          <select class="select" id="typeFilter">
+            <option value="all">全部业务类型</option>
+            <option value="银团贷款">银团贷款</option>
+            <option value="债券承销">债券承销</option>
+            <option value="产业基金">产业基金</option>
+          </select>
+          <input class="input" id="searchInput" type="search" placeholder="搜索主体、合同、金额、条款、附件">
+          <select class="select" id="statusFilter">
+            <option value="all">全部状态</option>
+            <option value="发现差异">发现差异</option>
+            <option value="缺材料">缺材料</option>
+            <option value="待复核">待复核</option>
+            <option value="通过">通过</option>
+          </select>
+          <button class="btn btn-primary" id="queryBtn">查询材料</button>
+        </div>
+        <div class="quick-row" id="quickFilters">
+          <button class="chip" data-status="发现差异">发现差异</button>
+          <button class="chip" data-status="缺材料">缺材料</button>
+          <button class="chip" data-query="担保范围">担保范围</button>
+          <button class="chip" data-query="签章缺失">签章缺失</button>
+          <button class="chip" data-type="债券承销">债券承销</button>
+        </div>
+      </section>
+
+      <section class="stats" id="stats"></section>
+
+      <section class="workspace">
+        <div class="panel">
+          <div class="panel-head">
+            <div><h2 id="mainPanelTitle">待审材料包</h2><span id="mainPanelHint">选择材料包后查看字段、差异、缺失项和审核意见</span></div>
+            <button class="btn btn-ghost" id="refreshBtn">重新解析材料</button>
+          </div>
+          <div class="tabs" id="tabs"></div>
+          <div id="mainContent"></div>
+        </div>
+
+        <aside class="side-stack">
+          <section class="panel"><div class="panel-head"><h3>当前材料包</h3><span id="selectedStatus"></span></div><div class="panel-body" id="selectedSummary"></div></section>
+          <section class="panel"><div class="panel-head"><h3>待办与提醒</h3><span id="todoCount"></span></div><div class="panel-body" id="todoList"></div></section>
+          <section class="panel"><div class="panel-head"><h3>操作留痕</h3><span>最近记录</span></div><div class="panel-body" id="auditList"></div></section>
+        </aside>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const packages = [
+      {
+        id: "dr1",
+        title: "银团贷款合同审核",
+        type: "银团贷款",
+        subject: "某高端制造集团",
+        amount: "2.6 亿元",
+        status: "发现差异",
+        statusType: "warn",
+        updated: "11:04",
+        summary: "合同关键字段已抽取，担保范围与授信批复不一致，董事会授权决议缺少盖章版。",
+        fields: {
+          "融资主体": "某高端制造集团",
+          "贷款金额": "2.6 亿元",
+          "期限": "36 个月",
+          "利率": "LPR+85BP"
+        },
+        compares: [
+          ["担保范围", "合同：机器设备抵押", "批复：设备+应收账款质押", "发现差异"],
+          ["贷款金额", "合同：2.6 亿元", "审批单：2.6 亿元", "一致"],
+          ["期限", "合同：36 个月", "授信批复：36 个月", "一致"]
+        ],
+        missing: [
+          ["董事会授权决议", "已上传扫描件，缺少盖章版", "缺材料"],
+          ["抵押物清单附件", "已上传", "齐全"],
+          ["签章页", "合同 v5 已盖章", "齐全"]
+        ],
+        clauses: [
+          ["担保责任", "条款 7.1 明确机器设备抵押，但未覆盖应收账款质押。", "待修订"],
+          ["提前到期", "条款 10.3 已覆盖重大违约及交叉违约。", "通过"],
+          ["资金用途", "条款 3.2 与授信用途一致。", "通过"]
+        ],
+        evidence: [
+          ["银团贷款合同 v5", "Word 解析 · 条款 7.1", "已引用"],
+          ["授信审批批复", "审批系统 · 2026-06-12", "已引用"],
+          ["董事会授权决议", "影像件 · 缺盖章版", "待补充"]
+        ],
+        todos: [
+          ["确认担保范围差异", "需业务经理补正合同表述", "待复核"],
+          ["补充董事会授权决议", "上传盖章版后进入用印", "缺材料"],
+          ["生成退回意见", "汇总差异和补正清单", "可处理"]
+        ],
+        audit: [
+          ["11:04", "抽取 42 个关键字段"],
+          ["11:03", "一致性校验发现 1 项差异"],
+          ["11:02", "合同 v5 上传"]
+        ]
+      },
+      {
+        id: "dr2",
+        title: "债券承销项目说明书审核",
+        type: "债券承销",
+        subject: "某城投控股公司",
+        amount: "8.0 亿元",
+        status: "待复核",
+        statusType: "warn",
+        updated: "10:36",
+        summary: "募集资金用途与审批材料基本一致，财务报表期末口径需要人工确认。",
+        fields: {
+          "发行主体": "某城投控股公司",
+          "发行规模": "8.0 亿元",
+          "期限": "5 年",
+          "募集用途": "偿还存量债务"
+        },
+        compares: [
+          ["募集用途", "说明书：偿还存量债务", "审批材料：偿还有息债务", "待复核"],
+          ["发行规模", "说明书：8.0 亿元", "审批单：8.0 亿元", "一致"],
+          ["财务报表口径", "说明书：2025 年末", "尽调报告：2026Q1", "待复核"]
+        ],
+        missing: [
+          ["评级报告", "已上传", "齐全"],
+          ["法律意见书", "已上传", "齐全"],
+          ["签章页", "待最终版生成", "待补充"]
+        ],
+        clauses: [
+          ["信息披露承诺", "已覆盖持续披露义务。", "通过"],
+          ["违约责任", "需要确认交叉违约表述是否与募集说明书模板一致。", "待复核"]
+        ],
+        evidence: [
+          ["项目说明书 v3", "PDF 解析 · 126 页", "已引用"],
+          ["尽调报告", "Word 解析 · 财务章节", "已引用"],
+          ["审批材料", "审批系统 · 2026-06-18", "已引用"]
+        ],
+        todos: [
+          ["确认财务报表口径", "说明书与尽调报告日期不一致", "待复核"],
+          ["检查最终签章页", "终稿生成后补齐", "待处理"]
+        ],
+        audit: [
+          ["10:36", "项目说明书字段抽取完成"],
+          ["10:32", "财务报表口径进入待复核"]
+        ]
+      },
+      {
+        id: "dr3",
+        title: "产业基金合作协议审核",
+        type: "产业基金",
+        subject: "先进制造产业基金",
+        amount: "1.5 亿元",
+        status: "通过",
+        statusType: "success",
+        updated: "09:58",
+        summary: "主体、金额、出资期限和附件均匹配审批材料，关键条款未发现异常。",
+        fields: {
+          "合作主体": "先进制造产业基金",
+          "出资金额": "1.5 亿元",
+          "出资期限": "24 个月",
+          "担保方式": "无"
+        },
+        compares: [
+          ["出资金额", "协议：1.5 亿元", "审批单：1.5 亿元", "一致"],
+          ["出资期限", "协议：24 个月", "审批单：24 个月", "一致"]
+        ],
+        missing: [
+          ["合伙协议", "已上传", "齐全"],
+          ["授权文件", "已上传", "齐全"],
+          ["签章页", "已上传", "齐全"]
+        ],
+        clauses: [
+          ["退出安排", "条款 12.2 与审批要求一致。", "通过"],
+          ["收益分配", "条款 8.1 已明确分配顺序。", "通过"]
+        ],
+        evidence: [
+          ["合作协议终稿", "Word 解析 · 48 页", "已引用"],
+          ["投决审批单", "审批系统 · 2026-06-16", "已引用"]
+        ],
+        todos: [
+          ["归档审核结果", "材料齐全且校验通过", "可处理"]
+        ],
+        audit: [
+          ["09:58", "审核结果标记通过"],
+          ["09:55", "附件完整性检查完成"]
+        ]
+      }
+    ];
+
+    const state = { view: "packages", tab: "packages", selectedId: "dr1", query: "", type: "all", status: "all", opinionReady: false };
+    const meta = {
+      packages: ["材料包列表", "处理合同、授信材料、担保协议和审批材料的字段核对与问题确认。"],
+      extract: ["字段抽取", "查看主体、金额、期限、利率、担保方式和账户信息抽取结果。"],
+      compare: ["一致性校验", "比对合同、审批单、授信批复和系统录入信息。"],
+      missing: ["缺失检查", "检查附件、签章、授权文件和审批材料是否齐全。"],
+      clauses: ["条款识别", "识别重大违约、提前到期、担保责任和资金用途等关键条款。"],
+      review: ["审核意见", "输出问题清单、修改建议和退回说明。"],
+      audit: ["审核留痕", "记录上传、解析、复核、退回和归档动作。"]
+    };
+    const tagClass = { "发现差异": "tag-warn", "缺材料": "tag-danger", "待复核": "tag-warn", "待处理": "tag-warn", "待补充": "tag-warn", "待修订": "tag-warn", "可处理": "tag-info", "通过": "tag-success", "齐全": "tag-success", "一致": "tag-success", "已引用": "tag-success" };
+    const $ = selector => document.querySelector(selector);
+    const $$ = selector => Array.from(document.querySelectorAll(selector));
+
+    function currentPackage() { return packages.find(item => item.id === state.selectedId) || packages[0]; }
+    function statusClass(item) { return item.statusType === "danger" ? "tag-danger" : item.statusType === "warn" ? "tag-warn" : "tag-success"; }
+    function tag(text, className) { return `<span class="tag ${className || tagClass[text] || "tag-muted"}">${text}</span>`; }
+    function toast(message) {
+      const node = $("#toast");
+      node.textContent = message;
+      node.classList.add("show");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => node.classList.remove("show"), 2200);
+    }
+    function filteredPackages() {
+      const keyword = state.query.trim().toLowerCase();
+      return packages.filter(item => {
+        const source = [item.title, item.type, item.subject, item.amount, item.status, item.summary, ...item.compares.flat(), ...item.missing.flat(), ...item.clauses.flat()].join(" ").toLowerCase();
+        return (state.type === "all" || item.type === state.type)
+          && (state.status === "all" || item.status === state.status)
+          && (!keyword || source.includes(keyword));
+      });
+    }
+    function renderStats() {
+      const diff = packages.filter(item => item.status === "发现差异").length;
+      const missing = packages.filter(item => item.status === "缺材料").length + packages.flatMap(item => item.missing).filter(row => row[2] === "缺材料" || row[2] === "待补充").length;
+      $("#stats").innerHTML = [
+        ["待审材料包", 38, "合同、授信、投决"],
+        ["字段抽取率", "96%", "平均置信度"],
+        ["发现差异", diff, "需人工确认"],
+        ["缺失材料", missing, "附件/签章/授权"]
+      ].map(item => `<div class="stat"><div class="label">${item[0]}</div><div class="value">${item[1]}</div><div class="note">${item[2]}</div></div>`).join("");
+    }
+    function renderPackageTable() {
+      const rows = filteredPackages();
+      if (!rows.length) return `<div class="empty">未找到匹配材料包，请调整关键词或筛选条件。</div>`;
+      return `<div class="table-wrap"><table><thead><tr><th>材料包</th><th>业务类型</th><th>主体</th><th>金额</th><th>状态</th><th>更新</th></tr></thead><tbody>${rows.map(item => `<tr class="clickable ${item.id === state.selectedId ? "selected" : ""}" data-package="${item.id}"><td><strong>${item.title}</strong><br><span style="color:var(--muted);font-size:12px">${item.summary}</span></td><td>${item.type}</td><td>${item.subject}</td><td>${item.amount}</td><td>${tag(item.status, statusClass(item))}</td><td>${item.updated}</td></tr>`).join("")}</tbody></table></div>`;
+    }
+    function renderExtract(item) {
+      return `<div class="panel-body"><div class="detail-grid">${Object.entries(item.fields).map(([key, value]) => `<div class="field"><span>${key}</span><strong>${value}</strong></div>`).join("")}</div><div class="notice">${item.summary}</div></div>`;
+    }
+    function renderCompare(item) {
+      return `<div class="table-wrap"><table><thead><tr><th>核对项</th><th>文档字段</th><th>参照来源</th><th>结论</th></tr></thead><tbody>${item.compares.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td>${tag(row[3])}</td></tr>`).join("")}</tbody></table></div>`;
+    }
+    function renderMissing(item) {
+      return `<div class="table-wrap"><table><thead><tr><th>材料/附件</th><th>检查结果</th><th>状态</th></tr></thead><tbody>${item.missing.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${tag(row[2])}</td></tr>`).join("")}</tbody></table></div>`;
+    }
+    function renderClauses(item) {
+      return `<div class="panel-body"><div class="list">${item.clauses.map(row => `<div class="card-item"><div class="card-title"><span>${row[0]}</span>${tag(row[2])}</div><p>${row[1]}</p></div>`).join("")}</div></div>`;
+    }
+    function renderEvidence(item) {
+      return `<div class="table-wrap"><table><thead><tr><th>证据来源</th><th>范围</th><th>状态</th><th>操作</th></tr></thead><tbody>${item.evidence.map((row, index) => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${tag(row[2])}</td><td><button class="mini-btn evidence-action" data-index="${index}">查看</button></td></tr>`).join("")}</tbody></table></div>`;
+    }
+    function renderReview(item) {
+      const text = state.opinionReady
+        ? `审核意见已生成：${item.title} 当前结论为「${item.status}」。建议业务人员优先处理「${item.todos[0][0]}」，补正后重新提交材料包。`
+        : "点击生成审核意见后，系统会合并字段抽取、差异校验、缺失检查和条款识别结果，形成可退回业务部门的审核清单。";
+      return `<div class="panel-body"><div class="notice">${text}</div><div class="list" style="margin-top:12px">${item.todos.map(todo => `<div class="step ${todo[2] === "缺材料" ? "danger" : todo[2] === "可处理" ? "done" : "warn"}"><div class="dot">审</div><div><strong>${todo[0]}</strong><span>${todo[1]}</span></div>${tag(todo[2])}</div>`).join("")}</div><div class="action-row"><button class="btn btn-primary" id="makeOpinion">生成审核意见</button><button class="btn btn-ghost" id="returnBiz">退回业务补正</button><button class="btn btn-ghost" id="markPass">标记通过</button></div></div>`;
+    }
+    function renderAudit(item) {
+      return `<div class="panel-body"><div class="list">${item.audit.map(row => `<div class="audit-line"><time>${row[0]}</time><div>${row[1]}</div></div>`).join("")}</div></div>`;
+    }
+    function renderTabs() {
+      const map = {
+        packages: [["packages", "材料包"], ["compare", "差异校验"], ["missing", "缺失项"]],
+        extract: [["extract", "字段抽取"], ["evidence", "来源文档"]],
+        compare: [["compare", "一致性校验"], ["evidence", "证据来源"]],
+        missing: [["missing", "缺失检查"], ["review", "审核意见"]],
+        clauses: [["clauses", "关键条款"], ["evidence", "来源文档"]],
+        review: [["review", "审核意见"], ["evidence", "证据来源"]],
+        audit: [["audit", "操作留痕"], ["evidence", "证据来源"]]
+      };
+      const tabs = map[state.view] || map.packages;
+      if (!tabs.some(([id]) => id === state.tab)) state.tab = tabs[0][0];
+      $("#tabs").innerHTML = tabs.map(([id, label]) => `<button class="tab ${state.tab === id ? "active" : ""}" data-tab="${id}">${label}</button>`).join("");
+    }
+    function renderMainContent() {
+      const item = currentPackage();
+      let html = "";
+      if (state.tab === "packages") html = renderPackageTable();
+      else if (state.tab === "extract") html = renderExtract(item);
+      else if (state.tab === "compare") html = renderCompare(item);
+      else if (state.tab === "missing") html = renderMissing(item);
+      else if (state.tab === "clauses") html = renderClauses(item);
+      else if (state.tab === "review") html = renderReview(item);
+      else if (state.tab === "audit") html = renderAudit(item);
+      else html = renderEvidence(item);
+      $("#mainContent").innerHTML = html;
+    }
+    function renderSide(item) {
+      $("#selectedStatus").innerHTML = tag(item.status, statusClass(item));
+      $("#selectedSummary").innerHTML = `<div class="list"><div class="card-item"><div class="card-title">${item.title}</div><p>${item.type}｜${item.subject}｜${item.amount}</p><p style="margin-top:6px">${item.summary}</p></div><div class="detail-grid" style="grid-template-columns:1fr 1fr;margin:0"><div class="field"><span>业务类型</span><strong>${item.type}</strong></div><div class="field"><span>更新</span><strong>${item.updated}</strong></div></div><div class="action-row"><button class="btn btn-primary" id="openReview">审核意见</button><button class="btn btn-ghost" id="openEvidence">证据来源</button></div></div>`;
+      $("#todoCount").textContent = `${item.todos.length} 项`;
+      $("#todoList").innerHTML = item.todos.map((todo, index) => `<div class="todo"><div><strong>${todo[0]}</strong><span>${todo[1]}</span></div><button class="mini-btn todo-action" data-index="${index}">${todo[2]}</button></div>`).join("");
+      $("#auditList").innerHTML = item.audit.map(row => `<div class="audit-line"><time>${row[0]}</time><div>${row[1]}</div></div>`).join("");
+    }
+    function syncNav() { $$(".nav-item").forEach(node => node.classList.toggle("active", node.dataset.view === state.view)); }
+    function bindDynamicEvents() {
+      $$("[data-package]").forEach(row => row.addEventListener("click", () => { state.selectedId = row.dataset.package; render(); toast("已切换到所选材料包"); }));
+      $$(".tab").forEach(tab => tab.addEventListener("click", () => { state.tab = tab.dataset.tab; render(); }));
+      $$(".todo-action").forEach(button => button.addEventListener("click", () => toast(`已打开待办：${currentPackage().todos[button.dataset.index][0]}`)));
+      $$(".evidence-action").forEach(button => button.addEventListener("click", () => toast(`已打开来源：${currentPackage().evidence[button.dataset.index][0]}`)));
+      $("#openReview")?.addEventListener("click", () => { state.view = "review"; state.tab = "review"; syncNav(); render(); toast("已打开审核意见"); });
+      $("#openEvidence")?.addEventListener("click", () => { state.view = "compare"; state.tab = "evidence"; syncNav(); render(); toast("已打开证据来源"); });
+      $("#makeOpinion")?.addEventListener("click", () => { state.opinionReady = true; currentPackage().audit.unshift(["刚刚", "审核意见已生成"]); render(); toast("审核意见已生成"); });
+      $("#returnBiz")?.addEventListener("click", () => { currentPackage().audit.unshift(["刚刚", "材料包已退回业务补正"]); render(); toast("材料包已退回业务补正"); });
+      $("#markPass")?.addEventListener("click", () => { const item = currentPackage(); item.status = "通过"; item.statusType = "success"; item.audit.unshift(["刚刚", "材料包已标记通过"]); render(); toast("材料包已标记通过"); });
+    }
+    function render() {
+      const item = currentPackage();
+      const [title, desc] = meta[state.view];
+      $("#pageTitle").textContent = title;
+      $("#pageDesc").textContent = desc;
+      $("#mainPanelTitle").textContent = title === "材料包列表" ? "待审材料包" : `${item.title} · ${title}`;
+      $("#mainPanelHint").textContent = title === "材料包列表" ? "选择材料包后查看字段、差异、缺失项和审核意见" : "当前内容随左侧模块与上方标签切换";
+      renderStats();
+      renderTabs();
+      renderMainContent();
+      renderSide(item);
+      bindDynamicEvents();
+    }
+    $$(".nav-item").forEach(node => node.addEventListener("click", () => { state.view = node.dataset.view; state.tab = state.view === "packages" ? "packages" : state.view; syncNav(); render(); }));
+    $("#queryBtn").addEventListener("click", () => { state.query = $("#searchInput").value; state.type = $("#typeFilter").value; state.status = $("#statusFilter").value; state.view = "packages"; state.tab = "packages"; syncNav(); render(); toast("材料包列表已按条件更新"); });
+    $("#typeFilter").addEventListener("change", () => $("#queryBtn").click());
+    $("#statusFilter").addEventListener("change", () => $("#queryBtn").click());
+    $("#quickFilters").addEventListener("click", event => {
+      const chip = event.target.closest(".chip");
+      if (!chip) return;
+      $$(".chip").forEach(node => node.classList.remove("active"));
+      chip.classList.add("active");
+      if (chip.dataset.query) { $("#searchInput").value = chip.dataset.query; state.query = chip.dataset.query; }
+      if (chip.dataset.status) { $("#statusFilter").value = chip.dataset.status; state.status = chip.dataset.status; }
+      if (chip.dataset.type) { $("#typeFilter").value = chip.dataset.type; state.type = chip.dataset.type; }
+      state.view = "packages";
+      state.tab = "packages";
+      syncNav();
+      render();
+      toast("快捷条件已应用");
+    });
+    $("#refreshBtn").addEventListener("click", () => { currentPackage().updated = "刚刚"; render(); toast("材料解析、审批数据和影像件状态已刷新"); });
+    $("#searchInput").addEventListener("keydown", event => { if (event.key === "Enter") $("#queryBtn").click(); });
+    render();
+  </script>
+</body>
+</html>
